@@ -32,12 +32,12 @@ module.exports = class User extends Sequelize.Model {
           comment: "닉네임",
         },
         regNo: {
-          type: Sequelize.DATE,
+          type: Sequelize.BIGINT,
           allowNull: false,
           comment: "등록자번호",
         },
         modNo: {
-          type: Sequelize.DATE,
+          type: Sequelize.BIGINT,
           allowNull: false,
           comment: "수정자번호",
         },

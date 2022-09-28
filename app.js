@@ -4,6 +4,8 @@ const morgan = require("morgan");
 const path = require("path");
 const session = require("express-session");
 const dotenv = require("dotenv");
+const passport = require('passport');
+const passportConfig = require('./passport');
 
 // dotenv는 최대한 위에
 dotenv.config();
@@ -42,6 +44,12 @@ app.use(
   })
 );
 
+// router에 가기 전에 작성
+// 로그인 후에 그 다음 요청부터 passport session이 실행될 때 deserializeUser가 실행됨
+app.use(passport.initialize());
+app.use(passport.session());
+passportConfig(passport);
+
 app.use("/", routes);
 
 // 404처리
@@ -55,8 +63,7 @@ app.use((req, res, next) => {
 app.use((err, req, res, next) => {
   res.locals.message = err.message;
   res.locals.error = process.env.NODE_ENV !== "production" ? err : {};
-  res.status(err.status || 500);
-  res.render("error");
+  res.status(err.status || 500).json({"msg":res.locals.message, "err": res.locals.error});
 });
 
 app.listen(app.get("port"), () => {
