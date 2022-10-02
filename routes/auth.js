@@ -1,9 +1,9 @@
 const express = require("express");
 const passport = require("passport");
 const bcrypt = require("bcrypt");
-const { isLoggedIn, isNotLoggedIn } = require("./middlewares");
+const { isLoggedIn, isNotLoggedIn, isAuthenticated } = require("./middlewares");
 const User = require("../models/user");
-
+const jwt = require("jsonwebtoken");
 const router = express.Router();
 
 router.post("/join", isNotLoggedIn, async (req, res, next) => {
@@ -57,6 +57,51 @@ router.get("/logout", isLoggedIn, (req, res) => {
   req.logout();
   req.session.destroy();
   res.status(200).json({ msg: "로그아웃 성공" });
+});
+
+router.post("/token", async (req, res) => {
+  try {
+    let user = await User.findOne({
+      where: {
+        email: req.body.email,
+      },
+    });
+
+    if (user) {
+      const result = await bcrypt.compare(req.body.password, user.password);
+      if (result) {
+        let token = jwt.sign(
+          {
+            id: user.email,
+          },
+          process.env.JWT_SECRET,
+          {
+            expiresIn: "1h",
+            issuer: "CHYOO",
+          }
+        );
+        res.status(200).json({ msg: "토큰 발급 성공", token });
+      } else {
+        res.status(400).json({ msg: "아이디와 비밀번호를 확인해주세요."});
+      }
+    }
+  } catch (error) {
+    console.error(error)
+    return res.status(500).json({ msg: "서버 에러" });
+  }
+});
+
+
+router.get('/token/logout', isAuthenticated(), (req, res) => {
+    res.status(200).json({ msg: "로그아웃"});W
+});
+
+router.get('/kakao', passport.authenticate('kakao'))
+
+router.get('/kakao/callback', passport.authenticate('kakao', {
+  failureRedirect: '/',
+}), (req, res) => {
+  res.status(200).json({ msg: "카카오 로그인"})
 });
 
 module.exports = router;

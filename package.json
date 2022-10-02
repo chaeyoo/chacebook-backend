@@ -9,12 +9,16 @@
   "author": "chyoo",
   "license": "MIT",
   "devDependencies": {
+    "eslint": "^8.24.0",
+    "eslint-plugin-react": "^7.31.8",
     "nodemon": "^2.0.20"
   },
   "dependencies": {
     "bcrypt": "^5.0.1",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.0.2",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.2.1",
     "express": "^4.18.1",
     "express-session": "^1.17.3",
     "i": "^0.3.7",
