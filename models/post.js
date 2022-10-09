@@ -7,10 +7,6 @@ module.exports = class Post extends Sequelize.Model {
         content: {
             type: Sequelize.STRING(1000),
             allowNull: false,
-        },
-        img: {
-            type: Sequelize.STRING(200),
-            allowNull: true,
         }
       },
       {
@@ -32,7 +28,12 @@ module.exports = class Post extends Sequelize.Model {
             foreignKey: {
                 name: 'postId'
             }
-        })
+        });
+        db.Post.hasOne(db.PostAtchFileMngRel, {
+          foreignKey: {
+              name: 'postId'
+          }
+        });
     }
     
 };
