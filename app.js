@@ -19,7 +19,7 @@ const app = express();
 app.set("port", process.env.PORT || 3001);
 
 sequelize
-  .sync({ force: false })
+  .sync({ force: true })
   .then(() => {
     console.log("Database...connect...success");
   })

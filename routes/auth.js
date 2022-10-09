@@ -6,6 +6,9 @@ const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
 
+/**
+ * 회원가입
+ */
 router.post("/join", isNotLoggedIn, async (req, res, next) => {
   const { email, password, nickName, regNo, modNo } = req.body;
   try {
@@ -30,6 +33,10 @@ router.post("/join", isNotLoggedIn, async (req, res, next) => {
   }
 });
 
+
+/**
+ * local 전략 로그인
+ */
 router.post("/login", isNotLoggedIn, (req, res, next) => {
   passport.authenticate("local", (authError, user, info) => {
     // 서버 에러
@@ -51,6 +58,9 @@ router.post("/login", isNotLoggedIn, (req, res, next) => {
   })(req, res, next);
 });
 
+/**
+ * local 전략 로그아웃
+ */
 router.get("/logout", isLoggedIn, (req, res) => {
   console.log(req.user);
   console.log(req.isAuthenticated());
@@ -59,6 +69,10 @@ router.get("/logout", isLoggedIn, (req, res) => {
   res.status(200).json({ msg: "로그아웃 성공" });
 });
 
+
+/**
+ * jwt 전략, 토큰생성
+ */
 router.post("/token", async (req, res) => {
   try {
     let user = await User.findOne({
@@ -91,13 +105,22 @@ router.post("/token", async (req, res) => {
   }
 });
 
-
+/**
+ * jwt 토큰 삭제
+ */
 router.get('/token/logout', isAuthenticated(), (req, res) => {
     res.status(200).json({ msg: "로그아웃"});W
 });
 
+/**
+ * 카카오 로그인 화면
+ */
 router.get('/kakao', passport.authenticate('kakao'))
 
+
+/**
+ * 카카오 페이지에서 로그인 성공하면 kakaoStrategy 전략 실행
+ */
 router.get('/kakao/callback', passport.authenticate('kakao', {
   failureRedirect: '/',
 }), (req, res) => {

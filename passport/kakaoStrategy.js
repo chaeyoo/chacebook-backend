@@ -18,10 +18,12 @@ module.exports = () => {
         done(null, exUser);
       } else {
         const newUser = await User.create({
-          email: profile._json && profile._json.kakao_account_email,
-          nick: profile.displayName,
+          email: profile._json && profile._json.kakao_account.email,
+          nickName: profile.displayName,
           snsId: profile.id,
           provider: 'kakao',
+          regNo: 1,
+          modNo: 1
         });
         done(null, newUser);
       }
