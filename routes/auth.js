@@ -86,7 +86,7 @@ router.post("/token", async (req, res) => {
       if (result) {
         let token = jwt.sign(
           {
-            id: user.email,
+            id: user.id,
           },
           process.env.JWT_SECRET,
           {

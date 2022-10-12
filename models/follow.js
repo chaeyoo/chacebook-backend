@@ -11,7 +11,6 @@ module.exports = class Follow extends Sequelize.Model {
         underscored: true,
         modelName: "Follow",
         tableName: "follow",
-        paranoid: true,
         charset: "utf8",
         collate: "utf8_general_ci",
       }
@@ -20,10 +19,10 @@ module.exports = class Follow extends Sequelize.Model {
 
     static associate(db) {
         db.Follow.belongsTo(db.User, {
-            foreignKey: 'followerId',
+            foreignKey: 'follower',
         });
         db.Follow.belongsTo(db.User, {
-            foreignKey: 'followeeId',
+            foreignKey: 'followee',
         });
     }
 };

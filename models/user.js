@@ -59,12 +59,12 @@ module.exports = class User extends Sequelize.Model {
       db.User.hasMany(db.Post);
       db.User.hasOne(db.Follow, {
         foreignKey: {
-          name: 'followerId'
+          name: 'follower'
         }
       })
       db.User.hasOne(db.Follow, {
         foreignKey: {
-          name: 'followeeId'
+          name: 'followee'
         }
       })
     }

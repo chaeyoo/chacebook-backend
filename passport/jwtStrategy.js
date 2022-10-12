@@ -14,7 +14,7 @@ module.exports = () => {
       async (payload, done) => {
         let user = await User.findOne({
           where: {
-            email: payload.id,
+            id: payload.id,
           },
         });
         console.log(user);
