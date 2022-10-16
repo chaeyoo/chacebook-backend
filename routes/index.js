@@ -5,10 +5,12 @@ const mainRouter = require("./main");
 const authRouter = require("./auth");
 const followRouter = require("./follow");
 const postRouter = require("./post");
+const hashtagRouter = require("./hashtag");
 
 router.use("/", mainRouter);
 router.use("/auth", authRouter);
 router.use("/follow", followRouter);
 router.use("/posts", postRouter);
+router.use("/hashtags", hashtagRouter);
 
 module.exports = router;
