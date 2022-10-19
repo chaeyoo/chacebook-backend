@@ -1,15 +1,15 @@
 const express = require("express");
 const passport = require("passport");
 const bcrypt = require("bcrypt");
-const { isLoggedIn, isNotLoggedIn, isAuthenticated } = require("./middlewares");
-const User = require("../models/user");
+const { isLoggedIn, isNotLoggedIn, isAuthenticated } = require("../middlewares");
+const User = require("../../models/user");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
 
 /**
  * 회원가입
  */
-router.post("/join", isNotLoggedIn, async (req, res, next) => {
+exports.join = async (req, res, next) => {
   const { email, password, nickName, regNo, modNo } = req.body;
   try {
     const existUser = await User.findOne({ where: { email } });
@@ -31,13 +31,13 @@ router.post("/join", isNotLoggedIn, async (req, res, next) => {
     console.error(err);
     return next(err);
   }
-});
+};
 
 
 /**
  * local 전략 로그인
  */
-router.post("/login", isNotLoggedIn, (req, res, next) => {
+exports.login = (req, res, next) => {
   passport.authenticate("local", (authError, user, info) => {
     // 서버 에러
     if (authError) {
@@ -56,24 +56,24 @@ router.post("/login", isNotLoggedIn, (req, res, next) => {
       return res.status(200).json({ data: user, msg: "로그인 성공" });
     });
   })(req, res, next);
-});
+};
 
 /**
  * local 전략 로그아웃
  */
-router.get("/logout", isLoggedIn, (req, res) => {
+exports.logout = (req, res) => {
   console.log(req.user);
   console.log(req.isAuthenticated());
   req.logout();
   req.session.destroy();
   res.status(200).json({ msg: "로그아웃 성공" });
-});
+};
 
 
 /**
  * jwt 전략, 토큰생성
  */
-router.post("/token", async (req, res) => {
+ exports.getToken = async (req, res) => {
   try {
     let user = await User.findOne({
       where: {
@@ -103,28 +103,19 @@ router.post("/token", async (req, res) => {
     console.error(error)
     return res.status(500).json({ msg: "서버 에러" });
   }
-});
+};
 
 /**
  * jwt 토큰 삭제
  */
-router.get('/token/logout', isAuthenticated(), (req, res) => {
+exports.removeToken = (req, res) => {
     res.status(200).json({ msg: "로그아웃"});W
-});
-
-/**
- * 카카오 로그인 화면
- */
-router.get('/kakao', passport.authenticate('kakao'))
+};
 
 
 /**
  * 카카오 페이지에서 로그인 성공하면 kakaoStrategy 전략 실행
  */
-router.get('/kakao/callback', passport.authenticate('kakao', {
-  failureRedirect: '/',
-}), (req, res) => {
+exports.kakaoCallback = (req, res) => {
   res.status(200).json({ msg: "카카오 로그인"})
-});
-
-module.exports = router;
+};

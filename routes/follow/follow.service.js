@@ -1,4 +1,5 @@
 const Follow = require("../../models/follow");
+const User = require('../../models/user')
 const jwt_decode = require("jwt-decode");
 
 
@@ -17,6 +18,12 @@ exports.follow = async (req, res, next) => {
 
   try {
     // follower로 user 검색하여 없는 경우 예외처리
+
+    const existUser = await User.findOne({ where: { id: follower } });
+    if (!existUser) {
+      return res.status(200).json({ msg: "존재하지 않는 사용자 입니다." });
+    }
+
     const existFollow = await Follow.findOne({ where: { followee, follower } });
     if (existFollow) {
       await existFollow.destroy();

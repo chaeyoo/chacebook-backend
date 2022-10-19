@@ -6,5 +6,5 @@ const { isAuthenticated } = require("../middlewares");
 router.get('/', isAuthenticated(), postService.getPosts);
 router.get("/:id", isAuthenticated(), postService.getPost);
 router.post("/", isAuthenticated(), postService.addPost);
-
+router.patch("/:id", isAuthenticated(), postService.modifyPost)
 module.exports = router;
