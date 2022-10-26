@@ -4,17 +4,12 @@ module.exports = class AtchFileMng extends Sequelize.Model {
   static init(sequelize) {
     return super.init(
       {
-        uldFileNm: {
-            type: Sequelize.STRING(45),
-            allowNull: false,
-            comment: "업로드 파일명"
-        },
-        filePath: {
-            type: Sequelize.STRING(200),
+        location: {
+            type: Sequelize.STRING(300),
             allowNull: false,
             comment: "파일 경로"
         },
-        fileSize: {
+        size: {
             type: Sequelize.INTEGER,
             allowNull: false,
             comment: "파일크기"
