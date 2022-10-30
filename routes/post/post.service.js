@@ -16,7 +16,7 @@ const uploadFileToS3 = async (fileData) => {
     },
   });
   try {
-    const fileContent = fs.readFileSync(fileData);
+    // const fileContent = fs.readFileSync(fileData);
 
     const params = {
       Bucket: "chyoo-bucket",
@@ -24,7 +24,7 @@ const uploadFileToS3 = async (fileData) => {
         console.log(file);
         cb(null, `img/${Date.now()}_${file.originalname}`);
       },
-      Body: fileContent,
+      Body: fileData.buffer,
     };
 
     const result = await s3Client.send(new PutObjectCommand(params));
