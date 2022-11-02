@@ -6,8 +6,9 @@ const hashtagService = require("../hashtag/hashtag.service");
 // const {storage} = require("../../config/s3Config");
 const fs = require("fs");
 const { S3Client, ListObjectsCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
+
+
 const uploadFileToS3 = async (fileData) => {
-  console.log(fileData, "@@");
   const s3Client = new S3Client({
     region: "ap-northeast-2",
     credentials: {
@@ -16,36 +17,17 @@ const uploadFileToS3 = async (fileData) => {
     },
   });
   try {
-    // const fileContent = fs.readFileSync(fileData);
-
     const params = {
       Bucket: "chyoo-bucket",
-      Key: function (req, file, cb) {
-        console.log(file);
-        cb(null, `img/${Date.now()}_${file.originalname}`);
-      },
+      Key: `post/img/${Buffer.from(fileData.originalname, 'latin1').toString('utf8')}_${Date.now()}`,
       Body: fileData.buffer,
     };
 
     const result = await s3Client.send(new PutObjectCommand(params));
-    // const result = await multerConfig(params).promise(); //??????
-    // const result = await multerConfig.send(params)
-
-    // const file = new File({
-    //   link: result.Location,
-    //   fileName: fileData.originalname,
-    // });
-
-    // await file.save();
-
-    // console.log(result)
-
-    // const data = {
-    //   _id: file._id,
-    //   link: result.Location,
-    // };
-
+    console.log('냐아아아아아아')
+    console.log(result,'resultresult' )
     return result;
+
   } catch (error) {
     console.log(error);
     throw error;
@@ -79,7 +61,7 @@ exports.addPost = async (req, res, next) => {
     await hashtagService.addHashtag(content, userId, savedPost);
 
     const fileSavedData = await uploadFileToS3(fileData);
-    console.log(fileSavedData, "fileSavedData");
+    console.log(fileSavedData, 'fileSavedDatafileSavedData')
     return res.status(200).json({ msg: "포스팅", data: savedPost });
   } catch (err) {
     console.error(err);
