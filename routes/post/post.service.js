@@ -1,13 +1,21 @@
 const express = require("express");
 const Post = require("../../models/post");
 const User = require("../../models/user");
+const AtchFileMng = require("../../models/atch_file_mng");
+const PostAtchFileMngRel = require('../../models/post_atch_file_mng_rel');
+
 const jwt_decode = require("jwt-decode");
 const hashtagService = require("../hashtag/hashtag.service");
-// const {storage} = require("../../config/s3Config");
+
 const fs = require("fs");
 const { S3Client, ListObjectsCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
 
 
+/**
+ * s3 upload
+ * @param {} fileData 
+ * @returns 
+ */
 const uploadFileToS3 = async (fileData) => {
   const s3Client = new S3Client({
     region: "ap-northeast-2",
@@ -17,16 +25,17 @@ const uploadFileToS3 = async (fileData) => {
     },
   });
   try {
+    const randonNum = Math.random().toString(36).substr(2,11);
+    const key = `/post/img/${randonNum}_${Date.now()}`
     const params = {
       Bucket: "chyoo-bucket",
-      Key: `post/img/${Buffer.from(fileData.originalname, 'latin1').toString('utf8')}_${Date.now()}`,
+      Key: key,
       Body: fileData.buffer,
     };
 
-    const result = await s3Client.send(new PutObjectCommand(params));
-    console.log('냐아아아아아아')
-    console.log(result,'resultresult' )
-    return result;
+    await s3Client.send(new PutObjectCommand(params));
+
+    return `https://chyoo-bucket.s3.ap-northeast-2.amazonaws.com${key}`
 
   } catch (error) {
     console.log(error);
@@ -51,6 +60,8 @@ exports.addPost = async (req, res, next) => {
   try {
     const regrUser = await User.findOne({ where: { id: userId } });
 
+
+    // post
     const savedPost = await Post.create({
       content,
     }).then(function (post) {
@@ -58,10 +69,30 @@ exports.addPost = async (req, res, next) => {
       return post.save();
     });
 
+    // 해시태그
     await hashtagService.addHashtag(content, userId, savedPost);
 
-    const fileSavedData = await uploadFileToS3(fileData);
-    console.log(fileSavedData, 'fileSavedDatafileSavedData')
+    // 파일
+    const location = await uploadFileToS3(fileData);
+    const fileOriginalName =  Buffer.from(fileData.originalname, 'latin1').toString('utf8')
+    const savedFile = await AtchFileMng.create({
+      location: location,
+      size : fileData.size,
+      ext : fileOriginalName.substring(fileOriginalName.lastIndexOf(".") + 1, fileOriginalName.length),
+      orgFileNm: fileOriginalName,
+      regNo: 1,
+      modNo: 1
+    });
+
+    await PostAtchFileMngRel.create({
+      regNo: 1,
+      modNo: 1
+    }).then(function (file) {
+      file.setPost(savedPost, { save: false });
+      file.setAtchFileMng(savedFile, {save: false});
+      return file.save();
+    });
+
     return res.status(200).json({ msg: "포스팅", data: savedPost });
   } catch (err) {
     console.error(err);

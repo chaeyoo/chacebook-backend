@@ -20,7 +20,7 @@ module.exports = class AtchFileMng extends Sequelize.Model {
             comment: "확장자"
         },
         orgFileNm: {
-            type: Sequelize.STRING(15),
+            type: Sequelize.STRING(255),
             allowNull: false,
             comment: "원파일명"
         },
