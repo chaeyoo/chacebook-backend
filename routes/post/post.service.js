@@ -2,19 +2,22 @@ const express = require("express");
 const Post = require("../../models/post");
 const User = require("../../models/user");
 const AtchFileMng = require("../../models/atch_file_mng");
-const PostAtchFileMngRel = require('../../models/post_atch_file_mng_rel');
-
+const PostAtchFileMngRel = require("../../models/post_atch_file_mng_rel");
+const { sequelize } = require("../../models");
 const jwt_decode = require("jwt-decode");
 const hashtagService = require("../hashtag/hashtag.service");
 
 const fs = require("fs");
-const { S3Client, ListObjectsCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
-
+const {
+  S3Client,
+  ListObjectsCommand,
+  PutObjectCommand,
+} = require("@aws-sdk/client-s3");
 
 /**
  * s3 upload
- * @param {} fileData 
- * @returns 
+ * @param {} fileData
+ * @returns
  */
 const uploadFileToS3 = async (fileData) => {
   const s3Client = new S3Client({
@@ -25,8 +28,8 @@ const uploadFileToS3 = async (fileData) => {
     },
   });
   try {
-    const randonNum = Math.random().toString(36).substr(2,11);
-    const key = `/post/img/${randonNum}_${Date.now()}`
+    const randonNum = Math.random().toString(36).substr(2, 11);
+    const key = `/post/img/${randonNum}_${Date.now()}`;
     const params = {
       Bucket: "chyoo-bucket",
       Key: key,
@@ -35,8 +38,7 @@ const uploadFileToS3 = async (fileData) => {
 
     await s3Client.send(new PutObjectCommand(params));
 
-    return `https://chyoo-bucket.s3.ap-northeast-2.amazonaws.com${key}`
-
+    return `https://chyoo-bucket.s3.ap-northeast-2.amazonaws.com${key}`;
   } catch (error) {
     console.log(error);
     throw error;
@@ -51,51 +53,70 @@ const uploadFileToS3 = async (fileData) => {
  * @returns
  */
 exports.addPost = async (req, res, next) => {
+  const t = await sequelize.transaction();
   const { content, token } = req.body;
   const fileData = req.file;
 
   const tokenUser = jwt_decode(token);
   const userId = tokenUser.id;
-
   try {
-    const regrUser = await User.findOne({ where: { id: userId } });
-
+    const regrUser = await User.findOne({
+      where: { id: userId },
+      transaction: t,
+    });
 
     // post
-    const savedPost = await Post.create({
-      content,
-    }).then(function (post) {
+    const savedPost = await Post.create(
+      {
+        content,
+      },
+      { transaction: t }
+    ).then(function (post) {
       post.setUser(regrUser, { save: false });
-      return post.save();
+      return post.save({transaction: t});
     });
 
     // 해시태그
-    await hashtagService.addHashtag(content, userId, savedPost);
+    await hashtagService.addHashtag(content, userId, savedPost, t);
 
     // 파일
     const location = await uploadFileToS3(fileData);
-    const fileOriginalName =  Buffer.from(fileData.originalname, 'latin1').toString('utf8')
-    const savedFile = await AtchFileMng.create({
-      location: location,
-      size : fileData.size,
-      ext : fileOriginalName.substring(fileOriginalName.lastIndexOf(".") + 1, fileOriginalName.length),
-      orgFileNm: fileOriginalName,
-      regNo: 1,
-      modNo: 1
-    });
+    const fileOriginalName = Buffer.from(
+      fileData.originalname,
+      "latin1"
+    ).toString("utf8");
+    const savedFile = await AtchFileMng.create(
+      {
+        location: location,
+        size: fileData.size,
+        ext: fileOriginalName.substring(
+          fileOriginalName.lastIndexOf(".") + 1,
+          fileOriginalName.length
+        ),
+        orgFileNm: fileOriginalName,
+        regNo: 1,
+        modNo: 1,
+      },
+      { transaction: t }
+    );
 
-    await PostAtchFileMngRel.create({
-      regNo: 1,
-      modNo: 1
-    }).then(function (file) {
+    await PostAtchFileMngRel.create(
+      {
+        regNo: 1,
+        modNo: 1,
+      },
+      { transaction: t }
+    ).then(function (file) {
       file.setPost(savedPost, { save: false });
-      file.setAtchFileMng(savedFile, {save: false});
-      return file.save();
+      file.setAtchFileMng(savedFile, { save: false });
+      return file.save({transaction: t});
     });
 
+    await t.commit();
     return res.status(200).json({ msg: "포스팅", data: savedPost });
   } catch (err) {
     console.error(err);
+    await t.rollback();
     return next(err);
   }
 };

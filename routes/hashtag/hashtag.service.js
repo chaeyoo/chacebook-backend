@@ -10,7 +10,7 @@ const PostHashtagRel = require("../../models/post_hashtag_rel");
  * @param {*} userId
  * @param {*} postResult
  */
-exports.addHashtag = async (content, userId, postResult) => {
+exports.addHashtag = async (content, userId, postResult, t) => {
   const hashtags = content.match(/#[^\s#]*/g);
 
   if (hashtags) {
@@ -18,6 +18,7 @@ exports.addHashtag = async (content, userId, postResult) => {
       hashtags.map((tag) => {
         return Hashtag.findOrCreate({
           where: { title: tag.slice(1).toLowerCase() },
+          transaction: t
         });
       })
     );
@@ -28,10 +29,10 @@ exports.addHashtag = async (content, userId, postResult) => {
         PostHashtagRel.create({
           regNo: userId,
           modNo: userId,
-        }).then(function (rel) {
+        }, {transaction: t}).then(function (rel) {
           rel.setPost(postResult, { save: false });
           rel.setHashtag(hashtagValue, { save: false });
-          return rel.save();
+          return rel.save({transaction: t});
         });
       });
   }
