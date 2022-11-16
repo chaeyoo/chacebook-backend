@@ -73,61 +73,52 @@ exports.addPost = async (req, res, next) => {
       { transaction: t }
     ).then(function (post) {
       post.setUser(regrUser, { save: false });
-      return post.save({transaction: t});
+      return post.save({ transaction: t });
     });
 
-    // 해시태그
+    // hashtag
     await hashtagService.addHashtag(content, userId, savedPost, t);
 
-    // 파일
-    // 반복문
-    // console.log(fileArr, 'fileArrfileArrfileArr')
-    const savedFileArr = [];
-    const postFileRelArr = [];
-    for (let i=0; i < fileArr.length; i++) {
+    // file
+    const fileArr = [];
+    for (let i = 0; i < fileArr.length; i++) {
       let fileData = fileArr[i];
       const location = await uploadFileToS3(fileData);
       const fileOriginalName = Buffer.from(
         fileData.originalname,
         "latin1"
       ).toString("utf8");
-      
-        const savedFileObj = {
-          location: location,
-          size: fileData.size,
-          ext: fileOriginalName.substring(
-            fileOriginalName.lastIndexOf(".") + 1,
-            fileOriginalName.length
-          ),
-          orgFileNm: fileOriginalName,
-          regNo: 1,
-          modNo: 1
-        }
-        savedFileArr.push(savedFileObj);
 
-        const postFileRel = {
-          regNo: 1,
-          modNo: 1
-        }
-        postFileRelArr.push(postFileRel);
+      const savedFileObj = {
+        location: location,
+        size: fileData.size,
+        ext: fileOriginalName.substring(
+          fileOriginalName.lastIndexOf(".") + 1,
+          fileOriginalName.length
+        ),
+        orgFileNm: fileOriginalName,
+        regNo: 1,
+        modNo: 1,
+      };
+      fileArr.push(savedFileObj);
+
     }
 
-    // 위에서 저장할 객체 반복문으로 만들어서 bulkcreate 로 한번에 넣어야 함
-    const savedFile = await AtchFileMng.bulkCreate(savedFileArr,
-      { transaction: t }
-    );
 
-  
-    await PostAtchFileMngRel.bulkCreate(
-      postFileRelArr,
-      { transaction: t }
-    ).then(function (file) {
+    // atchFile
+    const savedAtchFileArr = await AtchFileMng.bulkCreate(fileArr, { transaction: t });
 
-      // To-Do : bulkCreate 한 것 relation insert 하는 방법 찾기
-      file.setPost(savedPost, { save: false });
-      file.setAtchFileMng(savedFile, { save: false });
-      return file.save({transaction: t});
-    });
+    // post - atchFile relation
+    for (let i = 0; i < savedAtchFileArr.length; i++) {
+      await PostAtchFileMngRel.create(
+        { regNo: 1, modNo: 1 },
+        { transaction: t }
+      ).then(function (file) {
+        file.setPost(savedPost, { save: false });
+        file.setAtchFileMng(savedAtchFileArr[i], { save: false });
+        return file.save({ transaction: t });
+      });
+    }
 
     await t.commit();
     return res.status(200).json({ msg: "포스팅", data: savedPost });
