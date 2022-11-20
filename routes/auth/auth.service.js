@@ -1,10 +1,9 @@
 const express = require("express");
 const passport = require("passport");
 const bcrypt = require("bcrypt");
-const { isLoggedIn, isNotLoggedIn, isAuthenticated } = require("../middlewares");
+
 const User = require("../../models/user");
 const jwt = require("jsonwebtoken");
-const router = express.Router();
 
 /**
  * 회원가입
@@ -32,7 +31,6 @@ exports.join = async (req, res, next) => {
     return next(err);
   }
 };
-
 
 /**
  * local 전략 로그인
@@ -69,11 +67,10 @@ exports.logout = (req, res) => {
   res.status(200).json({ msg: "로그아웃 성공" });
 };
 
-
 /**
  * jwt 전략, 토큰생성
  */
- exports.getToken = async (req, res) => {
+exports.getToken = async (req, res) => {
   try {
     let user = await User.findOne({
       where: {
@@ -96,11 +93,11 @@ exports.logout = (req, res) => {
         );
         res.status(200).json({ msg: "토큰 발급 성공", token });
       } else {
-        res.status(400).json({ msg: "아이디와 비밀번호를 확인해주세요."});
+        res.status(400).json({ msg: "아이디와 비밀번호를 확인해주세요." });
       }
     }
   } catch (error) {
-    console.error(error)
+    console.error(error);
     return res.status(500).json({ msg: "서버 에러" });
   }
 };
@@ -109,13 +106,12 @@ exports.logout = (req, res) => {
  * jwt 토큰 삭제
  */
 exports.removeToken = (req, res) => {
-    res.status(200).json({ msg: "로그아웃"});W
+  res.status(200).json({ msg: "로그아웃" });
 };
-
 
 /**
  * 카카오 페이지에서 로그인 성공하면 kakaoStrategy 전략 실행
  */
 exports.kakaoCallback = (req, res) => {
-  res.status(200).json({ msg: "카카오 로그인"})
+  res.status(200).json({ msg: "카카오 로그인" });
 };

@@ -13,7 +13,8 @@ module.exports = class PostHashtagRel extends Sequelize.Model {
           type: Sequelize.BIGINT,
           allowNull: false,
           comment: "수정자번호",
-        },},
+        },
+      },
       {
         sequelize,
         timestamps: true,
@@ -27,12 +28,12 @@ module.exports = class PostHashtagRel extends Sequelize.Model {
     );
   }
 
-    static associate(db) {
-        db.PostHashtagRel.belongsTo(db.Post, {
-            foreignKey: 'postId',
-        });
-        db.PostHashtagRel.belongsTo(db.Hashtag, {
-            foreignKey: 'hashtagId',
-        });
-    }
+  static associate(db) {
+    db.PostHashtagRel.belongsTo(db.Post, {
+      foreignKey: "postId",
+    });
+    db.PostHashtagRel.belongsTo(db.Hashtag, {
+      foreignKey: "hashtagId",
+    });
+  }
 };

@@ -5,9 +5,9 @@ module.exports = class Post extends Sequelize.Model {
     return super.init(
       {
         content: {
-            type: Sequelize.STRING(1000),
-            allowNull: false,
-        }
+          type: Sequelize.STRING(1000),
+          allowNull: false,
+        },
       },
       {
         sequelize,
@@ -22,18 +22,17 @@ module.exports = class Post extends Sequelize.Model {
     );
   }
 
-    static associate(db) {
-        db.Post.belongsTo(db.User);
-        db.Post.hasOne(db.PostHashtagRel, {
-            foreignKey: {
-                name: 'postId'
-            }
-        });
-        db.Post.hasOne(db.PostAtchFileMngRel, {
-          foreignKey: {
-              name: 'postId'
-          }
-        });
-    }
-    
+  static associate(db) {
+    db.Post.belongsTo(db.User);
+    db.Post.hasOne(db.PostHashtagRel, {
+      foreignKey: {
+        name: "postId",
+      },
+    });
+    db.Post.hasOne(db.PostAtchFileMngRel, {
+      foreignKey: {
+        name: "postId",
+      },
+    });
+  }
 };

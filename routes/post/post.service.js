@@ -1,4 +1,3 @@
-const express = require("express");
 const Post = require("../../models/post");
 const User = require("../../models/user");
 const AtchFileMng = require("../../models/atch_file_mng");
@@ -7,12 +6,7 @@ const { sequelize } = require("../../models");
 const jwt_decode = require("jwt-decode");
 const hashtagService = require("../hashtag/hashtag.service");
 
-const fs = require("fs");
-const {
-  S3Client,
-  ListObjectsCommand,
-  PutObjectCommand,
-} = require("@aws-sdk/client-s3");
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 
 /**
  * s3 upload
@@ -80,7 +74,6 @@ exports.addPost = async (req, res, next) => {
     await hashtagService.addHashtag(content, userId, savedPost, t);
 
     // file
-    const fileArr = [];
     for (let i = 0; i < fileArr.length; i++) {
       let fileData = fileArr[i];
       const location = await uploadFileToS3(fileData);
@@ -101,12 +94,12 @@ exports.addPost = async (req, res, next) => {
         modNo: 1,
       };
       fileArr.push(savedFileObj);
-
     }
 
-
     // atchFile
-    const savedAtchFileArr = await AtchFileMng.bulkCreate(fileArr, { transaction: t });
+    const savedAtchFileArr = await AtchFileMng.bulkCreate(fileArr, {
+      transaction: t,
+    });
 
     // post - atchFile relation
     for (let i = 0; i < savedAtchFileArr.length; i++) {
@@ -203,8 +196,6 @@ exports.getPost = async (req, res, next) => {
   }
 };
 
-
-
 /**
  * 파일 다건 추가
  * @param {*} req
@@ -212,7 +203,7 @@ exports.getPost = async (req, res, next) => {
  * @param {*} next
  * @returns
  */
- exports.addFiles = async (req, res, next) => {
+exports.addFiles = async (req, res, next) => {
   const t = await sequelize.transaction();
   const { token } = req.body;
   const fileArr = req.files;
@@ -221,7 +212,6 @@ exports.getPost = async (req, res, next) => {
   const tokenUser = jwt_decode(token);
   const userId = tokenUser.id;
   try {
-
     // post
     const existPost = await Post.findOne({
       where: {

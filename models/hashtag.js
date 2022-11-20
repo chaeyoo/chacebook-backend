@@ -5,10 +5,10 @@ module.exports = class Hashtag extends Sequelize.Model {
     return super.init(
       {
         title: {
-            type: Sequelize.STRING(15),
-            allowNull: false,
-            unique: true,
-        }
+          type: Sequelize.STRING(15),
+          allowNull: false,
+          unique: true,
+        },
       },
       {
         sequelize,
@@ -23,12 +23,11 @@ module.exports = class Hashtag extends Sequelize.Model {
     );
   }
 
-    static associate(db) {
-
-        db.Hashtag.hasOne(db.PostHashtagRel, {
-            foreignKey: {
-                name: 'hashtagId'
-            }
-        })
-    }
+  static associate(db) {
+    db.Hashtag.hasOne(db.PostHashtagRel, {
+      foreignKey: {
+        name: "hashtagId",
+      },
+    });
+  }
 };

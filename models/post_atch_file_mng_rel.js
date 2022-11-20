@@ -13,7 +13,8 @@ module.exports = class PostAtchFileMngRel extends Sequelize.Model {
           type: Sequelize.BIGINT,
           allowNull: false,
           comment: "수정자번호",
-        },},
+        },
+      },
       {
         sequelize,
         timestamps: true,
@@ -27,12 +28,12 @@ module.exports = class PostAtchFileMngRel extends Sequelize.Model {
     );
   }
 
-    static associate(db) {
-        db.PostAtchFileMngRel.belongsTo(db.Post, {
-            foreignKey: 'postId',
-        });
-        db.PostAtchFileMngRel.belongsTo(db.AtchFileMng, {
-            foreignKey: 'atchFileMngId',
-        });
-    }
+  static associate(db) {
+    db.PostAtchFileMngRel.belongsTo(db.Post, {
+      foreignKey: "postId",
+    });
+    db.PostAtchFileMngRel.belongsTo(db.AtchFileMng, {
+      foreignKey: "atchFileMngId",
+    });
+  }
 };

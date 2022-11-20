@@ -5,35 +5,35 @@ module.exports = class AtchFileMng extends Sequelize.Model {
     return super.init(
       {
         location: {
-            type: Sequelize.STRING(300),
-            allowNull: false,
-            comment: "파일 경로"
+          type: Sequelize.STRING(300),
+          allowNull: false,
+          comment: "파일 경로",
         },
         size: {
-            type: Sequelize.INTEGER,
-            allowNull: false,
-            comment: "파일크기"
+          type: Sequelize.INTEGER,
+          allowNull: false,
+          comment: "파일크기",
         },
         ext: {
-            type: Sequelize.STRING(10),
-            allowNull: false,
-            comment: "확장자"
+          type: Sequelize.STRING(10),
+          allowNull: false,
+          comment: "확장자",
         },
         orgFileNm: {
-            type: Sequelize.STRING(255),
-            allowNull: false,
-            comment: "원파일명"
+          type: Sequelize.STRING(255),
+          allowNull: false,
+          comment: "원파일명",
         },
         regNo: {
           type: Sequelize.BIGINT,
           allowNull: false,
-          comment: "등록자번호"
+          comment: "등록자번호",
         },
         modNo: {
           type: Sequelize.BIGINT,
           allowNull: false,
-          comment: "수정자번호"
-        }
+          comment: "수정자번호",
+        },
       },
       {
         sequelize,
@@ -48,11 +48,11 @@ module.exports = class AtchFileMng extends Sequelize.Model {
     );
   }
 
-    static associate(db) {
-        db.AtchFileMng.hasOne(db.PostAtchFileMngRel, {
-            foreignKey: {
-                name: 'atchFileMngId'
-            }
-        });
-    }
+  static associate(db) {
+    db.AtchFileMng.hasOne(db.PostAtchFileMngRel, {
+      foreignKey: {
+        name: "atchFileMngId",
+      },
+    });
+  }
 };

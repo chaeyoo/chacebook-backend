@@ -1,17 +1,15 @@
 const Follow = require("../../models/follow");
-const User = require('../../models/user')
+const User = require("../../models/user");
 const jwt_decode = require("jwt-decode");
-
 
 /**
  * 팔로우, 이미 있는 경우 팔로우 취소
- * @param {*} req 
- * @param {*} res 
- * @param {*} next 
- * @returns 
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ * @returns
  */
 exports.follow = async (req, res, next) => {
-
   const { follower, token } = req.body;
   const tokenUser = jwt_decode(token);
   const followee = tokenUser.id;

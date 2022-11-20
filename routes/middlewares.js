@@ -1,5 +1,4 @@
-const jwt = require('jsonwebtoken');
-const passport = require('passport');
+const passport = require("passport");
 
 exports.isLoggedIn = (req, res, next) => {
   if (req.isAuthenticated()) {
@@ -17,6 +16,6 @@ exports.isNotLoggedIn = (req, res, next) => {
   }
 };
 
-exports.isAuthenticated = (req, res, next) => {       
-  return passport.authenticate('jwt', {session : false});
+exports.isAuthenticated = () => {
+  return passport.authenticate("jwt", { session: false });
 };

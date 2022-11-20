@@ -4,8 +4,8 @@ const morgan = require("morgan");
 const path = require("path");
 const session = require("express-session");
 const dotenv = require("dotenv");
-const passport = require('passport');
-const passportConfig = require('./passport');
+const passport = require("passport");
+const passportConfig = require("./passport");
 
 // dotenv는 최대한 위에
 dotenv.config();
@@ -60,10 +60,12 @@ app.use((req, res, next) => {
 });
 
 //error middleware (next를  반드시 써야함)
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   res.locals.message = err.message;
   res.locals.error = process.env.NODE_ENV !== "production" ? err : {};
-  res.status(err.status || 500).json({"msg":res.locals.message, "err": res.locals.error});
+  res
+    .status(err.status || 500)
+    .json({ msg: res.locals.message, err: res.locals.error });
 });
 
 app.listen(app.get("port"), () => {

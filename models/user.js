@@ -55,17 +55,17 @@ module.exports = class User extends Sequelize.Model {
     );
   }
 
-    static associate(db) {
-      db.User.hasMany(db.Post);
-      db.User.hasOne(db.Follow, {
-        foreignKey: {
-          name: 'follower'
-        }
-      })
-      db.User.hasOne(db.Follow, {
-        foreignKey: {
-          name: 'followee'
-        }
-      })
-    }
+  static associate(db) {
+    db.User.hasMany(db.Post);
+    db.User.hasOne(db.Follow, {
+      foreignKey: {
+        name: "follower",
+      },
+    });
+    db.User.hasOne(db.Follow, {
+      foreignKey: {
+        name: "followee",
+      },
+    });
+  }
 };

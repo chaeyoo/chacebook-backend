@@ -18,7 +18,7 @@ exports.addHashtag = async (content, userId, postResult, t) => {
       hashtags.map((tag) => {
         return Hashtag.findOrCreate({
           where: { title: tag.slice(1).toLowerCase() },
-          transaction: t
+          transaction: t,
         });
       })
     );
@@ -26,13 +26,16 @@ exports.addHashtag = async (content, userId, postResult, t) => {
     savedHashtag
       .map((r) => r[0])
       .map((hashtagValue) => {
-        PostHashtagRel.create({
-          regNo: userId,
-          modNo: userId,
-        }, {transaction: t}).then(function (rel) {
+        PostHashtagRel.create(
+          {
+            regNo: userId,
+            modNo: userId,
+          },
+          { transaction: t }
+        ).then(function (rel) {
           rel.setPost(postResult, { save: false });
           rel.setHashtag(hashtagValue, { save: false });
-          return rel.save({transaction: t});
+          return rel.save({ transaction: t });
         });
       });
   }
@@ -136,10 +139,10 @@ exports.getPostsByHashtagId = async (req, res, next) => {
         },
       },
     });
-    
+
     if (!hashtag) {
       return res.status(200).json({
-        msg: `'${keyword}' 키워드로 검색한 게시글 없음`
+        msg: `'${keyword}' 키워드로 검색한 게시글 없음`,
       });
     }
 

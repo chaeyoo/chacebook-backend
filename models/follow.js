@@ -3,8 +3,7 @@ const Sequelize = require("sequelize");
 module.exports = class Follow extends Sequelize.Model {
   static init(sequelize) {
     return super.init(
-      {
-      },
+      {},
       {
         sequelize,
         timestamps: true,
@@ -17,12 +16,12 @@ module.exports = class Follow extends Sequelize.Model {
     );
   }
 
-    static associate(db) {
-        db.Follow.belongsTo(db.User, {
-            foreignKey: 'follower',
-        });
-        db.Follow.belongsTo(db.User, {
-            foreignKey: 'followee',
-        });
-    }
+  static associate(db) {
+    db.Follow.belongsTo(db.User, {
+      foreignKey: "follower",
+    });
+    db.Follow.belongsTo(db.User, {
+      foreignKey: "followee",
+    });
+  }
 };
