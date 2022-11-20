@@ -202,3 +202,83 @@ exports.getPost = async (req, res, next) => {
     return next(err);
   }
 };
+
+
+
+/**
+ * 파일 다건 추가
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ * @returns
+ */
+ exports.addFiles = async (req, res, next) => {
+  const t = await sequelize.transaction();
+  const { token } = req.body;
+  const fileArr = req.files;
+  const postId = req.params.postId;
+
+  const tokenUser = jwt_decode(token);
+  const userId = tokenUser.id;
+  try {
+
+    // post
+    const existPost = await Post.findOne({
+      where: {
+        id: postId,
+      },
+    });
+
+    if (existPost && userId !== existPost.dataValues.UserId) {
+      return res.status(200).json({ msg: "유효하지 않은 요청입니다." });
+    }
+
+    // files
+    for (let i = 0; i < fileArr.length; i++) {
+      let fileData = fileArr[i];
+      const location = await uploadFileToS3(fileData);
+      const fileOriginalName = Buffer.from(
+        fileData.originalname,
+        "latin1"
+      ).toString("utf8");
+
+      const savedFileObj = {
+        location: location,
+        size: fileData.size,
+        ext: fileOriginalName.substring(
+          fileOriginalName.lastIndexOf(".") + 1,
+          fileOriginalName.length
+        ),
+        orgFileNm: fileOriginalName,
+        regNo: 1,
+        modNo: 1,
+      };
+      fileArr.push(savedFileObj);
+    }
+
+    // atchFile
+    const savedAtchFileArr = await AtchFileMng.bulkCreate(fileArr, {
+      transaction: t,
+    });
+
+    // post - atchFile relation
+    for (let i = 0; i < savedAtchFileArr.length; i++) {
+      await PostAtchFileMngRel.create(
+        { regNo: 1, modNo: 1 },
+        { transaction: t }
+      ).then(function (file) {
+        file.setPost(existPost, { save: false });
+        file.setAtchFileMng(savedAtchFileArr[i], { save: false });
+        return file.save({ transaction: t });
+      });
+    }
+
+    await t.commit();
+
+    return res.status(200).json({ msg: "포스팅", data: existPost });
+  } catch (err) {
+    console.error(err);
+    await t.rollback();
+    return next(err);
+  }
+};
