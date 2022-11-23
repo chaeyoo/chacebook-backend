@@ -11,7 +11,16 @@ router.get("/:id", isAuthenticated(), postService.getPost);
 router.post("/", isAuthenticated(), upload.array("image"), postService.addPost);
 router.patch("/:id", isAuthenticated(), postService.modifyPost);
 
-// router.post('/files/:postId', isAuthenticated(), upload.array("image"), postService.addFiles);
-// router.delete('/file/:atchFileId', isAuthenticated(), postService.deleteFile);
+router.post(
+  "/files/:postId",
+  isAuthenticated(),
+  upload.array("image"),
+  postService.addFiles
+);
+router.delete(
+  "/file/:postId/:fileId",
+  isAuthenticated(),
+  postService.deleteFile
+);
 
 module.exports = router;

@@ -7,7 +7,6 @@ const jwt_decode = require("jwt-decode");
 const hashtagService = require("../hashtag/hashtag.service");
 
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
-
 /**
  * s3 upload
  * @param {} fileData
@@ -29,7 +28,6 @@ const uploadFileToS3 = async (fileData) => {
       Key: key,
       Body: fileData.buffer,
     };
-
     await s3Client.send(new PutObjectCommand(params));
 
     return `https://chyoo-bucket.s3.ap-northeast-2.amazonaws.com${key}`;
@@ -49,8 +47,7 @@ const uploadFileToS3 = async (fileData) => {
 exports.addPost = async (req, res, next) => {
   const t = await sequelize.transaction();
   const { content, token } = req.body;
-  const fileArr = req.files;
-
+  const filesArr = req.files;
   const tokenUser = jwt_decode(token);
   const userId = tokenUser.id;
   try {
@@ -74,14 +71,16 @@ exports.addPost = async (req, res, next) => {
     await hashtagService.addHashtag(content, userId, savedPost, t);
 
     // file
-    for (let i = 0; i < fileArr.length; i++) {
-      let fileData = fileArr[i];
+    const dbSaveFile = [];
+
+    for (let i = 0; i < filesArr.length; i++) {
+      let fileData = filesArr[i];
+
       const location = await uploadFileToS3(fileData);
       const fileOriginalName = Buffer.from(
         fileData.originalname,
         "latin1"
       ).toString("utf8");
-
       const savedFileObj = {
         location: location,
         size: fileData.size,
@@ -93,11 +92,11 @@ exports.addPost = async (req, res, next) => {
         regNo: 1,
         modNo: 1,
       };
-      fileArr.push(savedFileObj);
+      dbSaveFile.push(savedFileObj);
     }
 
     // atchFile
-    const savedAtchFileArr = await AtchFileMng.bulkCreate(fileArr, {
+    const savedAtchFileArr = await AtchFileMng.bulkCreate(dbSaveFile, {
       transaction: t,
     });
 
@@ -224,6 +223,7 @@ exports.addFiles = async (req, res, next) => {
     }
 
     // files
+    const dbSaveFile = [];
     for (let i = 0; i < fileArr.length; i++) {
       let fileData = fileArr[i];
       const location = await uploadFileToS3(fileData);
@@ -243,11 +243,11 @@ exports.addFiles = async (req, res, next) => {
         regNo: 1,
         modNo: 1,
       };
-      fileArr.push(savedFileObj);
+      dbSaveFile.push(savedFileObj);
     }
 
     // atchFile
-    const savedAtchFileArr = await AtchFileMng.bulkCreate(fileArr, {
+    const savedAtchFileArr = await AtchFileMng.bulkCreate(dbSaveFile, {
       transaction: t,
     });
 
@@ -265,7 +265,63 @@ exports.addFiles = async (req, res, next) => {
 
     await t.commit();
 
-    return res.status(200).json({ msg: "포스팅", data: existPost });
+    return res.status(200).json({ msg: "파일 다건 추가", data: existPost });
+  } catch (err) {
+    console.error(err);
+    await t.rollback();
+    return next(err);
+  }
+};
+
+/**
+ * 파일 단건 삭제
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ * @returns
+ */
+exports.deleteFile = async (req, res, next) => {
+  const t = await sequelize.transaction();
+  const { token } = req.body;
+  const postId = req.params.postId;
+  const fileId = req.params.fileId;
+
+  const tokenUser = jwt_decode(token);
+  const userId = tokenUser.id;
+  try {
+    // post
+    const existPost = await Post.findOne({
+      where: {
+        id: postId,
+      },
+    });
+
+    if (existPost && userId !== existPost.dataValues.UserId) {
+      return res.status(200).json({ msg: "유효하지 않은 요청입니다." });
+    }
+
+    if (existPost && userId !== existPost.dataValues.UserId) {
+      return res.status(200).json({ msg: "유효하지 않은 요청입니다." });
+    }
+
+    const delRes = await AtchFileMng.destroy({
+      where: { id: fileId },
+      transaction: t,
+    });
+    await PostAtchFileMngRel.destroy({
+      where: { atchFileMngId: fileId, postId: postId },
+      transaction: t,
+    });
+    await t.commit();
+
+    const data =
+      delRes === 1
+        ? `${delRes}, postId: ${postId}-fileId: ${fileId} delete file, `
+        : `no delete file`;
+    return res.status(200).json({
+      msg: "파일 단건 삭제",
+      data,
+    });
   } catch (err) {
     console.error(err);
     await t.rollback();
