@@ -10,6 +10,7 @@ router.get("/", isAuthenticated(), postService.getPosts);
 router.get("/:id", isAuthenticated(), postService.getPost);
 router.post("/", isAuthenticated(), upload.array("image"), postService.addPost);
 router.patch("/:id", isAuthenticated(), postService.modifyPost);
+router.delete("/:id", isAuthenticated(), postService.deletePost);
 
 router.post(
   "/files/:postId",

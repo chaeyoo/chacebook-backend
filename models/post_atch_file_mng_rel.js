@@ -31,9 +31,11 @@ module.exports = class PostAtchFileMngRel extends Sequelize.Model {
   static associate(db) {
     db.PostAtchFileMngRel.belongsTo(db.Post, {
       foreignKey: "postId",
+      onDelete: "cascade",
     });
     db.PostAtchFileMngRel.belongsTo(db.AtchFileMng, {
       foreignKey: "atchFileMngId",
+      onDelete: "cascade",
     });
   }
 };

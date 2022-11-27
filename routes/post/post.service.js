@@ -316,11 +316,6 @@ exports.deleteFile = async (req, res, next) => {
     if (existPost && userId !== existPost.dataValues.UserId) {
       return res.status(200).json({ msg: "유효하지 않은 요청입니다." });
     }
-
-    if (existPost && userId !== existPost.dataValues.UserId) {
-      return res.status(200).json({ msg: "유효하지 않은 요청입니다." });
-    }
-
     const delRes = await AtchFileMng.destroy({
       where: { id: fileId },
       transaction: t,
@@ -338,6 +333,66 @@ exports.deleteFile = async (req, res, next) => {
     return res.status(200).json({
       msg: "파일 단건 삭제",
       data,
+    });
+  } catch (err) {
+    console.error(err);
+    await t.rollback();
+    return next(err);
+  }
+};
+
+/**
+ * post 단건 삭제
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ * @returns
+ */
+exports.deletePost = async (req, res, next) => {
+  const t = await sequelize.transaction();
+  const { token } = req.body;
+  const postId = req.params.id;
+
+  const tokenUser = jwt_decode(token);
+  const userId = tokenUser.id;
+
+  try {
+    // post
+    const existPost = await Post.findOne({
+      where: {
+        id: postId,
+      },
+      transaction: t,
+    });
+
+    if (existPost && userId !== existPost.dataValues.UserId) {
+      return res.status(200).json({ msg: "유효하지 않은 요청입니다." });
+    }
+
+    const postAtchRelRes = await PostAtchFileMngRel.findAll({
+      where: { postId },
+      include: [
+        { model: Post, as: "Post" },
+        { model: AtchFileMng, as: "AtchFileMng" },
+      ],
+    });
+    // AtchFile 결과
+    const atchFileMngArr = _.map(postAtchRelRes, "AtchFileMng").map(
+      (v) => v?.dataValues.id
+    );
+
+    const delRes = await Post.destroy({
+      where: { id: postId },
+      transaction: t,
+    });
+    await PostAtchFileMngRel.destroy({ where: { postId }, transaction: t });
+
+    atchFileMngArr.map((v) => {
+      AtchFileMng.destroy({ where: { id: v }, transaction: t });
+    });
+    return res.status(200).json({
+      msg: `delete post - ${postId}`,
+      data: delRes,
     });
   } catch (err) {
     console.error(err);
