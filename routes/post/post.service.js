@@ -5,7 +5,7 @@ const PostAtchFileMngRel = require("../../models/post_atch_file_mng_rel");
 const { sequelize } = require("../../models");
 const jwt_decode = require("jwt-decode");
 const hashtagService = require("../hashtag/hashtag.service");
-
+const _ = require("lodash");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 /**
  * s3 upload
@@ -186,7 +186,24 @@ exports.getPosts = async (req, res, next) => {
 exports.getPost = async (req, res, next) => {
   const postId = req.params.id;
   try {
-    const result = await Post.findOne({ where: { id: postId } });
+    const postAtchRelRes = await PostAtchFileMngRel.findAll({
+      where: { postId },
+      include: [
+        { model: Post, as: "Post" },
+        { model: AtchFileMng, as: "AtchFileMng" },
+      ],
+    });
+
+    // Post 결과
+    const postRes = _.pick(postAtchRelRes[0], ["Post"])?.Post.dataValues;
+    // AtchFile 결과
+    const atchFileMngArr = _.map(postAtchRelRes, "AtchFileMng").map(
+      (v) => v?.dataValues
+    );
+
+    const result = {};
+    result["post"] = postRes;
+    result["atchFile"] = atchFileMngArr;
 
     return res.status(200).json({ msg: `${postId} 상세조회`, data: result });
   } catch (err) {
