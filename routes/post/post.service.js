@@ -349,7 +349,6 @@ exports.deleteFile = async (req, res, next) => {
  * @returns
  */
 exports.deletePost = async (req, res, next) => {
-  const t = await sequelize.transaction();
   const { token } = req.body;
   const postId = req.params.id;
 
@@ -362,12 +361,13 @@ exports.deletePost = async (req, res, next) => {
       where: {
         id: postId,
       },
-      transaction: t,
     });
 
     if (existPost && userId !== existPost.dataValues.UserId) {
       return res.status(200).json({ msg: "유효하지 않은 요청입니다." });
     }
+
+    existPost.destroy();
 
     const postAtchRelRes = await PostAtchFileMngRel.findAll({
       where: { postId },
@@ -376,27 +376,26 @@ exports.deletePost = async (req, res, next) => {
         { model: AtchFileMng, as: "AtchFileMng" },
       ],
     });
+    postAtchRelRes.map((v) => {
+      v.destroy();
+    });
     // AtchFile 결과
     const atchFileMngArr = _.map(postAtchRelRes, "AtchFileMng").map(
       (v) => v?.dataValues.id
     );
 
-    const delRes = await Post.destroy({
-      where: { id: postId },
-      transaction: t,
-    });
-    await PostAtchFileMngRel.destroy({ where: { postId }, transaction: t });
+    console.log(postAtchRelRes, "postAtchRelRes");
+    console.log(atchFileMngArr, "atchFileMngArratchFileMngArr");
 
-    atchFileMngArr.map((v) => {
-      AtchFileMng.destroy({ where: { id: v }, transaction: t });
+    atchFileMngArr.map(async (v) => {
+      const atchFile = await AtchFileMng.findOne({ where: { id: v } });
+      await atchFile.destroy();
     });
     return res.status(200).json({
       msg: `delete post - ${postId}`,
-      data: delRes,
     });
   } catch (err) {
     console.error(err);
-    await t.rollback();
     return next(err);
   }
 };
