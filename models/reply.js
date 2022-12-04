@@ -24,16 +24,6 @@ module.exports = class Reply extends Sequelize.Model {
             allowNull: false,
             comment: "순서",
         },
-        regNo: {
-            type: Sequelize.BIGINT,
-            allowNull: false,
-            comment: "등록자번호",
-          },
-          modNo: {
-            type: Sequelize.BIGINT,
-            allowNull: false,
-            comment: "수정자번호",
-          },
       },
       {
         sequelize,
@@ -49,6 +39,7 @@ module.exports = class Reply extends Sequelize.Model {
   }
 
   static associate(db) {
+    db.Reply.belongsTo(db.User);
     db.Reply.hasOne(db.PostReplyRel, {
       foreignKey: {
         name: "replyId",
