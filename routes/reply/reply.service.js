@@ -5,6 +5,8 @@ const Reply = require("../../models/reply");
 const PostReplyRel = require("../../models/post_reply_rel");
 const jwt_decode = require("jwt-decode");
 const { sequelize } = require("../../models");
+const { Sequelize } = require("sequelize");
+const Op = Sequelize.Op;
 
 exports.addReply = async (req, res, next) => {
   const t = await sequelize.transaction();
@@ -26,6 +28,21 @@ exports.addReply = async (req, res, next) => {
         },
         transaction: t,
     });
+
+    const postReplyList = await PostReplyRel.findAll({
+      where: {postId: postId}
+    });
+
+    const maxOrder = await Reply.max('order', {
+      where : {
+        id: {
+          [Op.in] : [1,2]
+        } 
+      }
+    })
+  
+    console.log(postReplyList, "postReplyList")
+    console.log(maxOrder, "maxOrder")
 
     // TO-DO: order을 postId와 class로 reply 테이블에서 max+1값으로 조회하여 사용
     const savedReply = await Reply.create({
