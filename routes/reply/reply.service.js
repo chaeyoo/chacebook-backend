@@ -29,20 +29,20 @@ exports.addReply = async (req, res, next) => {
         transaction: t,
     });
 
-    const postReplyList = await PostReplyRel.findAll({
-      where: {postId: postId}
-    });
+    // const postReplyList = await PostReplyRel.findAll({
+    //   where: {postId: postId}
+    // });
 
-    const maxOrder = await Reply.max('order', {
-      where : {
-        id: {
-          [Op.in] : [1,2]
-        } 
-      }
-    })
+    // const maxOrder = await Reply.max('order', {
+    //   where : {
+    //     id: {
+    //       [Op.in] : [1,2]
+    //     } 
+    //   }
+    // })
   
-    console.log(postReplyList, "postReplyList")
-    console.log(maxOrder, "maxOrder")
+    // console.log(postReplyList, "postReplyList")
+    // console.log(maxOrder, "maxOrder")
 
     // TO-DO: order을 postId와 class로 reply 테이블에서 max+1값으로 조회하여 사용
     const savedReply = await Reply.create({
@@ -55,15 +55,20 @@ exports.addReply = async (req, res, next) => {
         return reply.save({ transaction: t });
     })
 
-    await PostReplyRel.create({
+    console.log(existPost, "---", savedReply)
+    const what = await PostReplyRel.create({
         regNo: userId,
         modNo: userId
-    }
+    },
+    { transaction: t }
     ).then(function (rel) {
+      console.log(rel.id, 'rel.id')
         rel.setPost(existPost, { save: false });
         rel.setReply(savedReply, { save: false });
         return rel.save({ transaction: t });
     })
+
+    console.log(what, '??????')
     return res.status(200).json({ msg: `게시물 - ${postId}에 댓글등록`, data: savedReply });
 
 

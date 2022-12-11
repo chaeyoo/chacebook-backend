@@ -34,5 +34,10 @@ module.exports = class Post extends Sequelize.Model {
         name: "postId",
       },
     });
+    db.Post.hasOne(db.PostReplyRel, {
+      foreignKey: {
+        name: "postId",
+      },
+    });
   }
 };
