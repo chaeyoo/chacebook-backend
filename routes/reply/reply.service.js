@@ -15,18 +15,18 @@ exports.addReply = async (req, res, next) => {
   const userId = tokenUser.id;
   const postId = req.params.postId;
 
-//   console.log(`comment: ${comment} | tokenUser: ${tokenUser} | postId: ${postId}`)
+  //   console.log(`comment: ${comment} | tokenUser: ${tokenUser} | postId: ${postId}`)
   try {
     const regrUser = await User.findOne({
-        where: { id: userId },
-        transaction: t,
+      where: { id: userId },
+      transaction: t,
     });
 
     const existPost = await Post.findOne({
-        where: {
-            id: postId,
-        },
-        transaction: t,
+      where: {
+        id: postId,
+      },
+      transaction: t,
     });
 
     // const postReplyList = await PostReplyRel.findAll({
@@ -37,41 +37,44 @@ exports.addReply = async (req, res, next) => {
     //   where : {
     //     id: {
     //       [Op.in] : [1,2]
-    //     } 
+    //     }
     //   }
     // })
-  
+
     // console.log(postReplyList, "postReplyList")
     // console.log(maxOrder, "maxOrder")
 
+    console.log(regrUser, "regrUser");
     // TO-DO: order을 postId와 class로 reply 테이블에서 max+1값으로 조회하여 사용
-    const savedReply = await Reply.create({
+    const savedReply = await Reply.create(
+      {
         comment,
         class: 0,
         order: 1,
-        }
+      },
+      { transaction: t }
     ).then(function (reply) {
-        reply.setUser(regrUser, { save: false });
-        return reply.save({ transaction: t });
-    })
+      reply.setUser(regrUser, { save: false });
+      return reply.save({ transaction: t });
+    });
 
-    console.log(existPost, "---", savedReply)
-    const what = await PostReplyRel.create({
+    console.log(existPost, "---", savedReply);
+    const what = await PostReplyRel.create(
+      {
         regNo: userId,
-        modNo: userId
-    },
-    { transaction: t }
+        modNo: userId,
+      },
+      { transaction: t }
     ).then(function (rel) {
-      console.log(rel.id, 'rel.id')
-        rel.setPost(existPost, { save: false });
-        rel.setReply(savedReply, { save: false });
-        return rel.save({ transaction: t });
-    })
+      rel.setPost(existPost, { save: false });
+      rel.setReply(savedReply, { save: false });
+      return rel.save({ transaction: t });
+    });
 
-    console.log(what, '??????')
-    return res.status(200).json({ msg: `게시물 - ${postId}에 댓글등록`, data: savedReply });
-
-
+    console.log(what, "??????");
+    return res
+      .status(200)
+      .json({ msg: `게시물 - ${postId}에 댓글등록`, data: what });
   } catch (err) {
     console.error(err);
     return next(err);
@@ -84,9 +87,9 @@ exports.addReply = async (req, res, next) => {
 //   const userId = tokenUser.id;
 //   const postId = req.params.postId;
 //   const replyId = req.params.replyId;
-  
+
 //   try {
-    
+
 //   } catch (err) {
 //     console.error(err);
 //     return next(err);

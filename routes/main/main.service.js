@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 const express = require("express");
 
 const router = express.Router();
@@ -13,4 +14,4 @@ exports.join = (req, res) => {
 exports.title = (req, res, next) => {
   const twits = [];
   res.status(200).json({ twits, title: "Chacebook" });
-}
+};
