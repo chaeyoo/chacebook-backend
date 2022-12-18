@@ -44,7 +44,7 @@ exports.addReply = async (req, res, next) => {
     // console.log(postReplyList, "postReplyList")
     // console.log(maxOrder, "maxOrder")
 
-    console.log(regrUser, "regrUser");
+    // console.log(regrUser, "regrUser");
     // TO-DO: order을 postId와 class로 reply 테이블에서 max+1값으로 조회하여 사용
     const savedReply = await Reply.create(
       {
@@ -58,7 +58,7 @@ exports.addReply = async (req, res, next) => {
       return reply.save({ transaction: t });
     });
 
-    console.log(existPost, "---", savedReply);
+    // console.log(existPost, "---", savedReply);
     const what = await PostReplyRel.create(
       {
         regNo: userId,
@@ -71,7 +71,7 @@ exports.addReply = async (req, res, next) => {
       return rel.save({ transaction: t });
     });
 
-    console.log(what, "??????");
+    // console.log(what, "??????");
     return res
       .status(200)
       .json({ msg: `게시물 - ${postId}에 댓글등록`, data: what });
@@ -81,17 +81,17 @@ exports.addReply = async (req, res, next) => {
   }
 };
 
-// exports.addReReply = async (req, res, next) => {
-//   const { token } = req.body;
-//   const tokenUser = jwt_decode(token);
-//   const userId = tokenUser.id;
-//   const postId = req.params.postId;
-//   const replyId = req.params.replyId;
+exports.addReReply = async (req, res, next) => {
+  const { token } = req.body;
+  const tokenUser = jwt_decode(token);
+  const userId = tokenUser.id;
+  const postId = req.params.postId;
+  const replyId = req.params.replyId;
 
-//   try {
+  try {
 
-//   } catch (err) {
-//     console.error(err);
-//     return next(err);
-//   }
-// };
+  } catch (err) {
+    console.error(err);
+    return next(err);
+  }
+};
