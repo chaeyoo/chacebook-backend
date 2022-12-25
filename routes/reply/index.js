@@ -5,7 +5,7 @@ const replyService = require("./reply.service");
 const { isAuthenticated } = require("../middlewares");
 
 router.post("/:postId", isAuthenticated(), replyService.addReply);
-// router.post("/:postId/:replyId", isAuthenticated(), replyService.addReReply);
+router.delete("/:replyId", isAuthenticated(), replyService.deleteReply)
 
 
 module.exports = router;

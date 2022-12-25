@@ -7,7 +7,51 @@ const jwt_decode = require("jwt-decode");
 const { sequelize } = require("../../models");
 const { Sequelize } = require("sequelize");
 const Op = Sequelize.Op;
+exports.deleteReply = async (req, res, next) => {
+  const t = await sequelize.transaction();
+  const { token } = req.body;
+  const replyId = req.params.replyId;
 
+  const tokenUser = jwt_decode(token);
+  const userId = tokenUser.id;
+
+  try {
+    const regrUser = await User.findOne({
+      where: { id: userId },
+      transaction: t,
+    });
+
+    const existReply = await Reply.findOne({
+      where: {
+        id: replyId,
+      },
+      transaction: t,
+    });
+
+    if (existReply && userId !== existReply.dataValues.UserId) {
+      return res.status(200).json({ msg: "유효하지 않은 요청입니다." });
+    }
+
+    const postReply = await PostReplyRel.findOne({
+      where: { replyId },
+    });
+
+    existReply.destroy();
+    postReply.destroy();
+    console.log(
+      regrUser,
+      "regrUser",
+      existReply,
+      "existReply",
+      postReply,
+      "postReplyList"
+    );
+    return res.status(200).json({ msg: `게시물 - ${replyId}에 댓글 삭제` });
+  } catch (err) {
+    console.error(err);
+    return next(err);
+  }
+};
 exports.addReply = async (req, res, next) => {
   const t = await sequelize.transaction();
   const { token, comment, repClass, upReplyId } = req.body;
