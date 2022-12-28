@@ -7,6 +7,38 @@ const jwt_decode = require("jwt-decode");
 const { sequelize } = require("../../models");
 const { Sequelize } = require("sequelize");
 const Op = Sequelize.Op;
+
+exports.getReplies = async (req, res, next) => {
+  const t = await sequelize.transaction();
+  const postId = req.params.postId;
+
+  try {
+    const postReplies = await PostReplyRel.findAll({
+      where: {
+        postId: postId,
+      },
+      transaction: t,
+    })
+
+    const replyArr = [];
+    postReplies.map((v) => {
+      replyArr.push(v.dataValues.replyId);
+    });
+
+    const replies  = await Reply.findAll({
+      where: {
+        id: {
+          [Op.in]: replyArr,
+        },
+      },
+    })
+    console.log(replies, 'replies')
+    return res.status(200).json({ msg: `${postId}번 게시물 - 댓글목록`, data: replies.map(v => (v.dataValues)) });
+  } catch (err) {
+    console.error(err);
+    return next(err);
+  }
+}
 exports.deleteReply = async (req, res, next) => {
   const t = await sequelize.transaction();
   const { token } = req.body;

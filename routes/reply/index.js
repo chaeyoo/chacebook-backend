@@ -6,6 +6,6 @@ const { isAuthenticated } = require("../middlewares");
 
 router.post("/:postId", isAuthenticated(), replyService.addReply);
 router.delete("/:replyId", isAuthenticated(), replyService.deleteReply)
-
+router.get("/:postId", isAuthenticated(), replyService.getReplies)
 
 module.exports = router;
