@@ -6,6 +6,7 @@ const session = require("express-session");
 const dotenv = require("dotenv");
 const passport = require("passport");
 const passportConfig = require("./passport");
+var swaggerUi = require("swagger-ui-express");
 
 // dotenv는 최대한 위에
 dotenv.config();
@@ -51,7 +52,11 @@ app.use(passport.session());
 passportConfig(passport);
 
 app.use("/", routes);
-
+app.use(
+  "/docs",
+  swaggerUi.serve,
+  swaggerUi.setup(require("./config/swaggerDoc"))
+);
 // 404처리
 app.use((req, res, next) => {
   const error = new Error(`${req.method} ${req.url} - NOT FOUND`);
