@@ -150,7 +150,7 @@ exports.modifyPost = async (req, res, next) => {
     }
     await hashtagService.modifyHashtag(content, userId, existPost);
     await existPost.save();
-    return res.status(200).json({ msg: "포스팅", data: existPost });
+    return res.status(200).json({ msg: "update post", data: existPost });
   } catch (err) {
     console.error(err);
     return next(err);

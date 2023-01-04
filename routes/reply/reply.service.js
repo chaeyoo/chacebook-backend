@@ -8,6 +8,37 @@ const { sequelize } = require("../../models");
 const { Sequelize } = require("sequelize");
 const Op = Sequelize.Op;
 
+exports.modifyReply = async (req, res, next) => {
+  try {
+    const t = await sequelize.transaction();
+    const { comment, token } = req.body;
+    const replyId = req.params.replyId;
+    const tokenUser = jwt_decode(token);
+    const userId = tokenUser.id;
+
+    const existReply = await Reply.findOne({
+      where: {
+        id: replyId,
+      },
+      transaction: t,
+    });
+
+    if (existReply && userId !== existReply.dataValues.UserId) {
+      return res.status(200).json({ msg: "유효하지 않은 요청입니다." });
+    }
+
+    if (existReply) {
+      existReply.comment = comment;
+    }
+
+    await existReply.save();
+    return res.status(200).json({ msg: "update reply", data: existReply });
+  } catch (err) {
+    console.error(err);
+    return next(err);
+  }
+};
+
 exports.getReplies = async (req, res, next) => {
   const t = await sequelize.transaction();
   const postId = req.params.postId;
@@ -18,27 +49,32 @@ exports.getReplies = async (req, res, next) => {
         postId: postId,
       },
       transaction: t,
-    })
+    });
 
     const replyArr = [];
     postReplies.map((v) => {
       replyArr.push(v.dataValues.replyId);
     });
 
-    const replies  = await Reply.findAll({
+    const replies = await Reply.findAll({
       where: {
         id: {
           [Op.in]: replyArr,
         },
       },
-    })
-    console.log(replies, 'replies')
-    return res.status(200).json({ msg: `${postId}번 게시물 - 댓글목록`, data: replies.map(v => (v.dataValues)) });
+    });
+    console.log(replies, "replies");
+    return res
+      .status(200)
+      .json({
+        msg: `${postId}번 게시물 - 댓글목록`,
+        data: replies.map((v) => v.dataValues),
+      });
   } catch (err) {
     console.error(err);
     return next(err);
   }
-}
+};
 exports.deleteReply = async (req, res, next) => {
   const t = await sequelize.transaction();
   const { token } = req.body;
@@ -48,11 +84,6 @@ exports.deleteReply = async (req, res, next) => {
   const userId = tokenUser.id;
 
   try {
-    const regrUser = await User.findOne({
-      where: { id: userId },
-      transaction: t,
-    });
-
     const existReply = await Reply.findOne({
       where: {
         id: replyId,
@@ -70,14 +101,7 @@ exports.deleteReply = async (req, res, next) => {
 
     existReply.destroy();
     postReply.destroy();
-    console.log(
-      regrUser,
-      "regrUser",
-      existReply,
-      "existReply",
-      postReply,
-      "postReplyList"
-    );
+
     return res.status(200).json({ msg: `게시물 - ${replyId}에 댓글 삭제` });
   } catch (err) {
     console.error(err);
