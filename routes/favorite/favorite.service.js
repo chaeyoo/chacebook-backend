@@ -7,23 +7,54 @@ const Post = require("../../models/post");
 const { Sequelize } = require("sequelize");
 const Op = Sequelize.Op;
 
-exports.getByUserId = async (req, res, next) => {
+exports.getUsersByPostId = async (req, res, next) => {
+  const t = await sequelize.transaction();
+  const postId = req.params.postId;
+
+  try {
+    const userList = await Favorite.findAll({
+      where: { post_id: postId },
+      transaction: t,
+    });
+
+    const userArr = [];
+    userList.map((v) => {
+      userArr.push(v.dataValues.user_id);
+    });
+
+    const users = await User.findAll({
+      attributes: ['nickName'],
+      where: {
+        id: {
+          [Op.in]: userArr,
+        },
+      },
+    });
+
+    return res.status(200).json({ data: users.map(v => v.nickName) });
+
+  } catch (err) {
+    console.error(err);
+    return next(err);
+  }
+};
+
+exports.getPostsByUserId = async (req, res, next) => {
   const t = await sequelize.transaction();
   const { token } = req.body;
   const userId = req.params.userId;
   const tokenUser = jwt_decode(token);
   const tokenUserId = tokenUser.id;
 
-  console.log(userId, "+", tokenUserId, "+", typeof userId, "+ ", typeof tokenUserId)
-  if(Number(userId) !== tokenUserId) {
+  if (Number(userId) !== tokenUserId) {
     return res.status(200).json({ msg: "유효하지 않은 요청입니다." });
   }
 
   try {
     const favoritedPosts = await Favorite.findAll({
-      where : {user_id: userId},
-      transaction: t
-    })
+      where: { user_id: userId },
+      transaction: t,
+    });
 
     const postArr = [];
     favoritedPosts.map((v) => {
@@ -32,18 +63,18 @@ exports.getByUserId = async (req, res, next) => {
 
     const posts = await Post.findAll({
       where: {
-        id : {
-          [Op.in]: postArr
-        }
-      }
-    })
+        id: {
+          [Op.in]: postArr,
+        },
+      },
+    });
 
     return res.status(200).json({ msg: "favorited posts", data: posts });
   } catch (err) {
     console.error(err);
     return next(err);
   }
-}
+};
 
 exports.addFavorite = async (req, res, next) => {
   const t = await sequelize.transaction();
