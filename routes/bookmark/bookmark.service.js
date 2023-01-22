@@ -5,7 +5,10 @@ const User = require("../../models/user");
 const Bookmark = require("../../models/bookmark");
 const Post = require("../../models/post");
 const { Sequelize } = require("sequelize");
+const PostAtchFileMngRel = require("../../models/post_atch_file_mng_rel");
+const AtchFileMng = require("../../models/atch_file_mng");
 const Op = Sequelize.Op;
+const _ = require("lodash");
 
 exports.getPostsByUserId = async (req, res, next) => {
   const t = await sequelize.transaction();
@@ -29,22 +32,25 @@ exports.getPostsByUserId = async (req, res, next) => {
       postIdArr.push(v.dataValues.post_id);
     });
 
-    const posts = await Post.findAll({
+    const postAtchRelRes = await PostAtchFileMngRel.findAll({
       where: {
-        id: {
+        postId: {
           [Op.in]: postIdArr,
         },
       },
+      include: [
+        // { model: Post, as: "Post" },
+        { model: AtchFileMng, as: "AtchFileMng" },
+      ],
     });
 
-    
-
-    return res.status(200).json({ msg: "bookmarked posts", data: posts });
+    console.log(_.groupBy(postAtchRelRes, "postId"))
+    return res.status(200).json({ msg: "bookmarked posts", data: _.groupBy(postAtchRelRes, "postId") });
   } catch (err) {
     console.error(err);
     return next(err);
   }
-}
+};
 
 exports.addBookmark = async (req, res, next) => {
   const t = await sequelize.transaction();
