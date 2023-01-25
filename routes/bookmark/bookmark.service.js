@@ -39,13 +39,16 @@ exports.getPostsByUserId = async (req, res, next) => {
         },
       },
       include: [
-        // { model: Post, as: "Post" },
         { model: AtchFileMng, as: "AtchFileMng" },
       ],
     });
 
-    console.log(_.groupBy(postAtchRelRes, "postId"))
-    return res.status(200).json({ msg: "bookmarked posts", data: _.groupBy(postAtchRelRes, "postId") });
+    const postAtchRelObj = _.groupBy(postAtchRelRes, "postId");
+    const thumbnailResult = [];
+    for (let key in postAtchRelObj) {
+      thumbnailResult.push(postAtchRelObj[key][0])
+    }
+    return res.status(200).json({ msg: "bookmarked posts", data: thumbnailResult });
   } catch (err) {
     console.error(err);
     return next(err);
