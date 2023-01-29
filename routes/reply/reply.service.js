@@ -64,12 +64,10 @@ exports.getReplies = async (req, res, next) => {
       },
     });
     console.log(replies, "replies");
-    return res
-      .status(200)
-      .json({
-        msg: `${postId}번 게시물 - 댓글목록`,
-        data: replies.map((v) => v.dataValues),
-      });
+    return res.status(200).json({
+      msg: `${postId}번 게시물 - 댓글목록`,
+      data: replies.map((v) => v.dataValues),
+    });
   } catch (err) {
     console.error(err);
     return next(err);
@@ -98,11 +96,43 @@ exports.deleteReply = async (req, res, next) => {
     const postReply = await PostReplyRel.findOne({
       where: { replyId },
     });
+    if (postReply) {
+      postReply.destroy();
+    }
+    
+    if (existReply) {
+      existReply.destroy();
 
-    existReply.destroy();
-    postReply.destroy();
+      // 하위 댓글 삭제
 
-    return res.status(200).json({ msg: `게시물 - ${replyId}에 댓글 삭제` });
+      const children = await Reply.findAll({
+        attributes: ['id'],
+        where: {
+          upReplyId: replyId
+        }
+      });
+
+      await PostReplyRel.destroy({
+        where: {
+          replyId: {
+            [Op.in]: children.map((v) => v.dataValues.id),
+          },
+        }
+      })
+
+      await Reply.destroy({
+        where: {
+          upReplyId: replyId,
+        },
+        truncate: true,
+      });
+
+
+
+      return res.status(200).json({ msg: `게시물 - ${replyId}에 댓글 삭제` });
+    } else {
+      return res.status(200).json({ msg: `댓글이 존재하지 않음` });
+    }
   } catch (err) {
     console.error(err);
     return next(err);
