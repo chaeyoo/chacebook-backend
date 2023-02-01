@@ -2,6 +2,8 @@ const Post = require("../../models/post");
 const User = require("../../models/user");
 const AtchFileMng = require("../../models/atch_file_mng");
 const PostAtchFileMngRel = require("../../models/post_atch_file_mng_rel");
+const PostReplyRel = require("../.../../../models/post_reply_rel");
+const Reply = require("../../models/reply");
 const { sequelize } = require("../../models");
 const jwt_decode = require("jwt-decode");
 const hashtagService = require("../hashtag/hashtag.service");
@@ -391,6 +393,27 @@ exports.deletePost = async (req, res, next) => {
       const atchFile = await AtchFileMng.findOne({ where: { id: v } });
       await atchFile.destroy();
     });
+
+    const postReplyRelRes = await PostReplyRel.findAll({
+      where: { postId },
+      include: [
+        { model: Post, as: "Post" },
+        { model: Reply, as: "Reply" },
+      ],
+    });
+    postReplyRelRes.map((v) => {
+      v.destroy();
+    });
+    // Reply 결과
+    const replyArr = _.map(postReplyRelRes, "Reply").map(
+      (v) => v?.dataValues.id
+    );
+
+    replyArr.map(async (v) => {
+      const reply = await Reply.findOne({ where: { id: v } });
+      await reply.destroy();
+    });
+
     return res.status(200).json({
       msg: `delete post - ${postId}`,
     });
